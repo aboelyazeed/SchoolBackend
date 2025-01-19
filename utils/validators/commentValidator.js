@@ -3,16 +3,6 @@ const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 
 // Validator for adding a comment
 exports.addCommentValidator = [
-  check("postId")
-    .notEmpty()
-    .withMessage("Post ID is required")
-    .isMongoId()
-    .withMessage("Invalid Post ID format"),
-  check("userId")
-    .notEmpty()
-    .withMessage("User ID is required")
-    .isMongoId()
-    .withMessage("Invalid User ID format"),
   check("text")
     .optional()
     .isLength({ max: 500 })
@@ -31,12 +21,6 @@ exports.likeCommentValidator = [
     .withMessage("Comment ID is required")
     .isMongoId()
     .withMessage("Invalid Comment ID format"),
-  check("userId")
-    .notEmpty()
-    .withMessage("User ID is required")
-    .isMongoId()
-    .withMessage("Invalid User ID format"),
-  validatorMiddleware,
 ];
 
 // Validator for updating a comment
@@ -64,10 +48,5 @@ exports.deleteCommentValidator = [
     .withMessage("Comment ID is required")
     .isMongoId()
     .withMessage("Invalid Comment ID format"),
-  check("userId")
-    .notEmpty()
-    .withMessage("User ID is required")
-    .isMongoId()
-    .withMessage("Invalid User ID format"),
   validatorMiddleware,
 ];

@@ -1,4 +1,5 @@
 const express = require("express");
+const verifyToken = require("../middlewares/authMiddleware")
 const {
   createPostValidator,
   updatePostValidator,
@@ -17,6 +18,7 @@ const {
 } = require("../services/postService");
 
 const router = express.Router();
+router.use(verifyToken)
 
 router
   .route("/")

@@ -1,4 +1,6 @@
 const express = require("express");
+const verifyToken = require("../middlewares/authMiddleware");
+
 const {
   addComment,
   getCommentsInPost,
@@ -14,14 +16,14 @@ const {
 } = require("../utils/validators/commentValidator");
 
 const router = express.Router();
+router.use(verifyToken)
 
-router
-  .route("/")
-  .post(addCommentValidator, addComment);
 
 router
   .route("/:postId")    //post ID
-  .get(getCommentsInPost);
+  .get(getCommentsInPost)
+  .post(addCommentValidator, addComment);
+
 
 router
   .route("/:id/like")   //comment ID

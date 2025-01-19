@@ -5,15 +5,29 @@ const jwt = require("jsonwebtoken");
 
 // Register
 exports.register = asyncHandler(async (req, res) => {
+  // التحقق من أن المستخدم الحالي هو أدمن
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).json({ message: "Access denied. Admins only." });
+  }
+
+  // قراءة البيانات من الطلب
+  const { username, email, password, isAdmin } = req.body;
+
+  // التحقق من صحة البيانات
+  if (!username || !email || !password) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
+
   // توليد كلمة مرور مشفرة
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   // إنشاء مستخدم جديد
   const newUser = new User({
-    username: req.body.username,
-    email: req.body.email,
+    username,
+    email,
     password: hashedPassword,
+    isAdmin: isAdmin || false, // افتراضيًا ليس أدمن
   });
 
   // حفظ المستخدم وإرسال الرد
@@ -25,6 +39,7 @@ exports.register = asyncHandler(async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (err) {
@@ -58,8 +73,8 @@ exports.login = asyncHandler(async (req, res) => {
     { expiresIn: "1d" }
   );
 
-  // إرسال الرد النهائي
-  res.status(200).json({
+
+  const response=({
     message: "Login successful",
     token,
     user: {
@@ -68,4 +83,11 @@ exports.login = asyncHandler(async (req, res) => {
       email: user.email,
     },
   });
+
+  // if Admin Print that Else Do Nothing 
+  if (user.isAdmin) {
+    response.user.isAdmin = user.isAdmin;
+  }
+  res.status(200).json(response);
+
 });

@@ -4,20 +4,38 @@ const Post = require("../models/postModel");
 
 // Add Comment
 exports.addComment = asyncHandler(async (req, res) => {
-    const comment = new Comment({
-        postId: req.body.postId,
-        userId: req.body.userId,
-        text: req.body.text,
-        img: req.body.img || "",
-    });
+    try {
+        // Create a new comment
+        const comment = new Comment({
+            postId: req.params.postId, // Take postId from params
+            userId: req.user.id, // Take userId from token
+            text: req.body.text,
+            img: req.body.img || "",
+        });
 
-    const savedComment = await comment.save();
+        // Save the comment to the database
+        const savedComment = await comment.save();
 
-    // Update Number Of Comments
-    await Post.findByIdAndUpdate(req.body.postId, { $inc: { commentsCount: 1 } });
+        // Increment the commentsCount in the post
+        await Post.findByIdAndUpdate(
+            req.params.postId,
+            { $inc: { commentsCount: 1 } } // Increment the comments count by 1
+        );
 
-    res.status(200).json(savedComment);
+        // Send the response
+        res.status(200).json({
+            message: "Comment added successfully",
+            comment: savedComment,
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to add comment",
+            error: err.message,
+        });
+    }
 });
+    
+
 
 // Get Comments in a Post
 exports.getCommentsInPost = asyncHandler(async (req, res) => {
@@ -25,28 +43,35 @@ exports.getCommentsInPost = asyncHandler(async (req, res) => {
     res.status(200).json(comments);
 });
 
+
 // Like or Dislike Comment
 exports.likeComment = asyncHandler(async (req, res) => {
-    const comment = await Comment.findById(req.params.id);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    try {
+        const comment = await Comment.findById(req.params.id);
 
-    const alreadyLiked = comment.likes.includes(req.body.userId);
+        if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-    if (alreadyLiked) {
-        await comment.updateOne({ $pull: { likes: req.body.userId } });
-        res.status(200).json({ message: "Like removed" });
-    } else {
-        await comment.updateOne({ $push: { likes: req.body.userId } });
-        res.status(200).json({ message: "Comment liked" });
+        const alreadyLiked = comment.likes.includes(req.user.id);
+
+        if (alreadyLiked) {
+            await comment.updateOne({ $pull: { likes: req.user.id } });
+            res.status(200).json({ message: "Like removed" });
+        } else {
+            await comment.updateOne({ $push: { likes: req.user.id } });
+            res.status(200).json({ message: "Comment liked" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Failed to like/dislike comment", error: err.message });
     }
 });
+
 
 // Update Comment
 exports.updateComment = asyncHandler(async (req, res) => {
     const comment = await Comment.findById(req.params.id);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-    if (comment.userId.toString() === req.body.userId) {
+    if (comment.userId.toString() === req.user.id) { // Use userId from token
         const updatedComment = await Comment.findByIdAndUpdate(
             req.params.id,
             {
@@ -72,9 +97,9 @@ exports.deleteComment = asyncHandler(async (req, res) => {
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const isAuthorized =
-        comment.userId.toString() === req.body.userId || // comment maker
-        post.userId === req.body.userId || // post maker
-        req.body.isAdmin; // admin
+        comment.userId.toString() === req.user.id || // comment maker
+        post.userId.toString() === req.user.id || // post maker
+        req.user.isAdmin; // admin
 
     if (isAuthorized) {
         await comment.deleteOne();
@@ -84,3 +109,4 @@ exports.deleteComment = asyncHandler(async (req, res) => {
         res.status(403).json({ message: "Unauthorized to delete this comment" });
     }
 });
+

@@ -42,10 +42,6 @@ const UserSchema = new mongoose.Schema({
         type:String,
         max:50
     },
-    seenPosts: {
-        type: Array,
-        default: [] 
-    },
     city:{
         type:String,
         max:50
@@ -54,11 +50,12 @@ const UserSchema = new mongoose.Schema({
         type:String,
         max:50
     },
-    relationship:{
-        type:Number,
-        enum:[1,2,3]
-    },
-
+    posts: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Post", 
+        },
+      ],
 
 },
 {timestamps:true}

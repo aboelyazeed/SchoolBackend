@@ -1,4 +1,5 @@
 const express = require("express");
+const verifyToken = require('../middlewares/authMiddleware')
 const {
   updateUser,
   deleteUser,
@@ -14,6 +15,7 @@ const {
 } = require("../utils/validators/userValidator");
 
 const router = express.Router();
+router.use(verifyToken);
 
 router
   .route("/:id")
