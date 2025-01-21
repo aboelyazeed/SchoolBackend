@@ -6,6 +6,8 @@ const {
   getCourse,
   updateCourse,
   deleteCourse,
+  setLevelIdToBody,
+  createFilterObj,
 } = require("../services/courseService");
 
 const {
@@ -15,9 +17,14 @@ const {
   updateCourseValidator,
 } = require("../utils/validators/courseValidator");
 
-const router = express.Router();
+// mergeParams allow us to access prametars on the other routers
+// Ex: We need to access levelId from the level router
+const router = express.Router({ mergeParams: true });
 
-router.route("/").get(getCourses).post(createCourseValidator, createCourse);
+router
+  .route("/")
+  .post(setLevelIdToBody, createCourseValidator, createCourse)
+  .get(createFilterObj, getCourses);
 router
   .route("/:id")
   .get(getCourseValidator, getCourse)

@@ -13,8 +13,11 @@ const {
   updateLevel,
   deleteLevel,
 } = require("../services/levelServices");
+const coursesRoute = require("./courseRoute");
 
 const router = express.Router();
+
+router.use("/:levelId/courses", coursesRoute);
 
 router.route("/").get(getLevels).post(createLevelValidator, createLevel);
 
